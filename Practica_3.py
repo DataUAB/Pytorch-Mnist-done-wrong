@@ -1,6 +1,4 @@
 # coding: utf-8
-
-
 import torch
 import time as t
 import torch.nn as nn
@@ -15,8 +13,8 @@ train_samples = datasets.ImageFolder('data/training', transforms.ToTensor())
 test_samples = datasets.ImageFolder('data/testing', transforms.ToTensor())
 
 # Load data
-train_set = DataLoader(train_samples, batch_size=100, shuffle=True, num_workers=0)
-test_set = DataLoader(test_samples, batch_size=100, shuffle=False, num_workers=0)
+train_set = DataLoader(train_samples, batch_size=170, shuffle=True, num_workers=0)
+test_set = DataLoader(test_samples, batch_size=170, shuffle=False, num_workers=0)
 
 
 class Cnn(nn.Module):
@@ -26,8 +24,8 @@ class Cnn(nn.Module):
         super(Cnn, self).__init__()
         self.conv1 = nn.Conv2d(3, 20, kernel_size=5, padding=1)
         self.conv2 = nn.Conv2d(20, 50, kernel_size=5, padding=1)
-        self.fc1 = nn.Linear(5*5*50, 500)
-        self.fc2 = nn.Linear(500, 10)
+        self.fc1 = nn.Linear(5*5*50, 4)
+        self.fc2 = nn.Linear(4, 10)
         
     def forward(self,x):
         x = F.sigmoid(self.conv1(x))
@@ -48,7 +46,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = Cnn().to(device)
 
 # Create the optimizer
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1,  momentum=0.9, weight_decay=0)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1,  momentum=0.1, weight_decay=0)
 
 # Establish our loss funcion (NLLLoss needs log_softmax outputs)
 criterion = nn.NLLLoss()
@@ -121,12 +119,12 @@ for epoch in range(10):
     start = t.time()
 
     train_loss, train_acc = train(model, optimizer, criterion)
-    print('-' * 72)
-    print('| End of epoch: {:3d} | Time: {:.2f}s | Train loss: {:.3f} | Train acc: {:.3f} |'
+    print('-' * 74)
+    print('| End of epoch: {:3d} | Time: {:.2f}s | Train loss: {:.3f} | Train acc: {:.3f}|'
           .format(epoch + 1, t.time() - start, train_loss, train_acc))
     
     test_loss, test_acc = test(model, optimizer, criterion)
-    print('-' * 72)
-    print('| End of epoch: {:3d} | Time: {:.2f}s | Test loss: {:.3f} | Test acc: {:.3f} |'
+    print('-' * 74)
+    print('| End of epoch: {:3d} | Time: {:.2f}s | Test loss: {:.3f} | Test acc: {:.3f}|'
           .format(epoch + 1, t.time() - start, test_loss, test_acc))
 
