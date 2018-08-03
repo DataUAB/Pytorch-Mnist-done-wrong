@@ -9,7 +9,7 @@ def pkl_export(predictions, filename):
         filename: string with file path: for instance preds.pkl
     """
     with open(filename, 'wb') as outfile:
-        pickle.dump(predictions, outfile)
+        pickle.dump(predictions, outfile, protocol=2)
 
 
 def pkl_import(filename):
