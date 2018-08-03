@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from torchvision import datasets, transforms
+from utils.export_results import pkl_export
 
 
 # Prepare data
@@ -92,7 +93,7 @@ def test(model, optimizer, criterion):
     
     # we do not need to compute the gradients in eval mode
     with torch.no_grad(): 
-
+        total_preds = []
         for x,y in test_set:
             
             x=x.to(device)
@@ -100,12 +101,15 @@ def test(model, optimizer, criterion):
         
             output = model(x) # forward pass
             _, preds = torch.max(output, 1)
-
+            total_preds += [float(x) for x in preds]
             loss = criterion(output, y) # calculate the loss value
            
             # statistics 
             running_loss += loss.item() * x.size(0)
             running_corrects += torch.sum(preds==y).item()
+
+    pkl_export(total_preds, "results.pkl")
+
             
     epoch_loss = running_loss / len(test_samples) # mean epoch loss
     epoch_acc = running_corrects / len(test_samples) # mean epoch accuracy
