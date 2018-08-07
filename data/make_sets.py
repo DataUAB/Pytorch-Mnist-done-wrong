@@ -3,8 +3,8 @@ import numpy as np
 import shutil as sh
 
 
-trainpath = 'data/training/'
-testpath = 'data/testing'
+trainpath = 'data/train/'
+testpath = 'data/val'
 newtrain = "data/competition/train"
 newval = "data/competition/val"
 newtest = "data/competition/test"
