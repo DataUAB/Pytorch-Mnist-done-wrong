@@ -10,12 +10,12 @@ from utils.export_results import pkl_export
 
 
 # Prepare data
-train_samples = datasets.ImageFolder('data/train', transforms.ToTensor())
-val_samples = datasets.ImageFolder('data/test', transforms.ToTensor())
+train_samples = datasets.ImageFolder('data/competition/train', transforms.ToTensor())
+val_samples = datasets.ImageFolder('data/competition/val', transforms.ToTensor())
 
 # Load data
-train_set = DataLoader(train_samples, batch_size=170, shuffle=True, num_workers=0)
-val_set = DataLoader(val_samples, batch_size=170, shuffle=False, num_workers=0)
+train_set = DataLoader(train_samples, batch_size=100, shuffle=True, num_workers=2)
+val_set = DataLoader(val_samples, batch_size=100, shuffle=False, num_workers=2)
 
 
 class Cnn(nn.Module):
@@ -29,12 +29,12 @@ class Cnn(nn.Module):
         self.fc2 = nn.Linear(4, 10)
         
     def forward(self,x):
-        x = F.sigmoid(self.conv1(x))
+        x = torch.sigmoid(self.conv1(x))
         x = F.max_pool2d(x, 2)
-        x = F.sigmoid(self.conv2(x))
+        x = torch.sigmoid(self.conv2(x))
         x = F.max_pool2d(x, 2)
         x = x.view(-1, 5*5*50)
-        x = F.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc1(x))
         x = self.fc2(x)
         
         return F.log_softmax(x, dim=1)
@@ -47,7 +47,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = Cnn().to(device)
 
 # Create the optimizer
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1,  momentum=0.1, weight_decay=0)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01,  momentum=0.9, weight_decay=0)
 
 # Establish our loss funcion (NLLLoss needs log_softmax outputs)
 criterion = nn.NLLLoss()
@@ -83,7 +83,7 @@ def train(model, optimizer, criterion):
     return epoch_loss, epoch_acc
 
 
-def validate(model, optimizer, criterion):
+def validate(model, criterion):
     
     model.eval() # evaluation mode
     
@@ -101,7 +101,6 @@ def validate(model, optimizer, criterion):
         
             output = model(x) # forward pass
             _, preds = torch.max(output, 1)
-            total_preds += [float(x) for x in preds]
             loss = criterion(output, y) # calculate the loss value
            
             # statistics 
@@ -113,6 +112,22 @@ def validate(model, optimizer, criterion):
     
     return epoch_loss, epoch_acc
 
+def predict(model, folder, output_path="predictions_class.pkl"):
+    samples = datasets.ImageFolder(folder, transforms.ToTensor())
+    dataset = DataLoader(samples, batch_size=32, shuffle=False, num_workers=0)
+    ret = []
+    with torch.no_grad():
+        for sample, _ in dataset:
+            output = model(sample.to(device))
+            _, preds = torch.max(output, 1)
+            ret += preds.cpu().numpy().flatten().tolist()
+    pkl_export(ret, output_path)
+
+
+
+
+
+
 
 for epoch in range(10):
 
@@ -122,8 +137,11 @@ for epoch in range(10):
     print('-' * 74)
     print('| End of epoch: {:3d} | Time: {:.2f}s | Train loss: {:.3f} | Train acc: {:.3f}|'
           .format(epoch + 1, t.time() - start, train_loss, train_acc))
-    
-    val_loss, val_acc = validate(model, optimizer, criterion)
+
+    start = t.time()
+    val_loss, val_acc = validate(model, criterion)
     print('-' * 74)
     print('| End of epoch: {:3d} | Time: {:.2f}s | Val loss: {:.3f} | Val acc: {:.3f}|'
           .format(epoch + 1, t.time() - start, val_loss, val_acc))
+
+predict(model, "data/competition/test")

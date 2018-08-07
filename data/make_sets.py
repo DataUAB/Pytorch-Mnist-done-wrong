@@ -2,7 +2,6 @@ import os
 import numpy as np
 import shutil as sh
 
-
 trainpath = 'data/train/'
 testpath = 'data/test'
 newtrain = "data/competition/train"
@@ -26,14 +25,26 @@ for tr in train_folders:
     os.makedirs(newpath_val, exist_ok=True)
     imlist = os.listdir(path)
     indices = np.random.permutation(len(imlist))
-    train_indices = indices[:int(train_prop * len(imlist))]
-    val_indices = indices[int(train_prop) * len(imlist):]
+    ntrain = int(train_prop * len(imlist))
+    train_indices = indices[:ntrain]
+    val_indices = indices[ntrain:]
+    assert(len(val_indices) < len(train_indices))
     for i in train_indices:
         im = imlist[i]
         sh.copy(os.path.join(path, im), os.path.join(newpath_train, im))
     for i in val_indices:
         im = imlist[i]
         sh.copy(os.path.join(path, im), os.path.join(newpath_val, im))
+
+os.makedirs(os.path.join(newtest, 'all'), exist_ok=True)
+
+for te in test_folders:
+    path = os.path.join(testpath, te)
+    ims = os.listdir(path)
+    for im in ims:
+        impath = os.path.join(path, im)
+        sh.copy(impath, os.path.join(newtest, "all", im))
+
 
 
 
