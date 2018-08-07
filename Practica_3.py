@@ -10,12 +10,12 @@ from utils.export_results import pkl_export
 
 
 # Prepare data
-train_samples = datasets.ImageFolder('data/training', transforms.ToTensor())
-test_samples = datasets.ImageFolder('data/testing', transforms.ToTensor())
+train_samples = datasets.ImageFolder('data/train', transforms.ToTensor())
+val_samples = datasets.ImageFolder('data/val', transforms.ToTensor())
 
 # Load data
 train_set = DataLoader(train_samples, batch_size=170, shuffle=True, num_workers=0)
-test_set = DataLoader(test_samples, batch_size=170, shuffle=False, num_workers=0)
+val_set = DataLoader(val_samples, batch_size=170, shuffle=False, num_workers=0)
 
 
 class Cnn(nn.Module):
@@ -83,9 +83,8 @@ def train(model, optimizer, criterion):
     return epoch_loss, epoch_acc
 
 
-def test(model, optimizer, criterion):
+def validate(model, optimizer, criterion):
     
-
     model.eval() # evaluation mode
     
     running_loss = 0
@@ -94,7 +93,8 @@ def test(model, optimizer, criterion):
     # we do not need to compute the gradients in eval mode
     with torch.no_grad(): 
         total_preds = []
-        for x,y in test_set:
+
+        for x,y in val_set:
             
             x=x.to(device)
             y=y.to(device)
@@ -108,12 +108,8 @@ def test(model, optimizer, criterion):
             running_loss += loss.item() * x.size(0)
             running_corrects += torch.sum(preds==y).item()
 
-    pkl_export(total_preds, "results.pkl")
-
-            
-    epoch_loss = running_loss / len(test_samples) # mean epoch loss
-    epoch_acc = running_corrects / len(test_samples) # mean epoch accuracy
-    
+    epoch_loss = running_loss / len(val_samples) # mean epoch loss
+    epoch_acc = running_corrects / len(val_samples) # mean epoch accuracy
     
     return epoch_loss, epoch_acc
 
@@ -127,8 +123,7 @@ for epoch in range(10):
     print('| End of epoch: {:3d} | Time: {:.2f}s | Train loss: {:.3f} | Train acc: {:.3f}|'
           .format(epoch + 1, t.time() - start, train_loss, train_acc))
     
-    test_loss, test_acc = test(model, optimizer, criterion)
+    val_loss, val_acc = validate(model, optimizer, criterion)
     print('-' * 74)
-    print('| End of epoch: {:3d} | Time: {:.2f}s | Test loss: {:.3f} | Test acc: {:.3f}|'
-          .format(epoch + 1, t.time() - start, test_loss, test_acc))
-
+    print('| End of epoch: {:3d} | Time: {:.2f}s | Val loss: {:.3f} | Val acc: {:.3f}|'
+          .format(epoch + 1, t.time() - start, val_loss, val_acc))
