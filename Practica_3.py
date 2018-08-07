@@ -11,7 +11,7 @@ from utils.export_results import pkl_export
 
 # Prepare data
 train_samples = datasets.ImageFolder('data/train', transforms.ToTensor())
-val_samples = datasets.ImageFolder('data/val', transforms.ToTensor())
+val_samples = datasets.ImageFolder('data/test', transforms.ToTensor())
 
 # Load data
 train_set = DataLoader(train_samples, batch_size=170, shuffle=True, num_workers=0)

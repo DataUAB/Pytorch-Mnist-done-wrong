@@ -4,7 +4,7 @@ import shutil as sh
 
 
 trainpath = 'data/train/'
-testpath = 'data/val'
+testpath = 'data/test'
 newtrain = "data/competition/train"
 newval = "data/competition/val"
 newtest = "data/competition/test"
