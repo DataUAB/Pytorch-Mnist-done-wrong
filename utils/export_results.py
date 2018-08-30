@@ -51,6 +51,3 @@ if __name__ == "__main__":
     pkl_export(predictions=a, filename="tmp.pkl")
     pkl_export(predictions=a, filename="tmp1.pkl")
     assert ((np.array(pkl_import("tmp.pkl")) == a[:]).all()) 
-    pkl_concat('.', 'result.pkl' ) 
-    print(np.array(pkl_import("result.pkl")))
-    print("Test passed")
