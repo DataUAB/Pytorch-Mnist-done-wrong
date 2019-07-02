@@ -30,9 +30,9 @@ test_output_path = "competition/results/test/predictions_class" + str(target_cla
 final_output_path = "competition/results/final" # path to store the final predictions
 
 # Prepare data
-train_data = np.load('competition/train.npy')
-val_data = np.load('competition/val.npy')
-test_data = np.load('competition/test_alumnes.npy')
+train_data = np.load('competition/train.npy', allow_pickle=True)
+val_data = np.load('competition/val.npy', allow_pickle=True)
+test_data = np.load('competition/test_alumnes.npy', allow_pickle=True)
 
 def select_class(data, clss, train=False):
     images = np.array(data.item()["images"])
@@ -110,7 +110,7 @@ def train(model, optimizer, criterion):
         # statistics
         running_loss += loss.item() * x.size(0)
         # .item() converts type from torch to python float or int
-        running_corrects += torch.sum(preds == y).item()
+        running_corrects += torch.sum(preds.data.view(-1)==y.data.view(-1)).item()
         total += float(y.size(0))
 
     epoch_loss = running_loss / total  # mean epoch loss
@@ -141,13 +141,13 @@ def val(model, criterion):
             # statistics
             running_loss += loss.item() * x.size(0)
             # .item() converts type from torch to python float or int
-            running_corrects += torch.sum(preds==y).item()
+            running_corrects += torch.sum(preds.data.view(-1)==y.data.view(-1)).item()
             total += float(y.size(0))
             ret += (output.cpu().numpy().flatten().tolist())
-    
+
     epoch_loss = running_loss / total # mean epoch loss
     epoch_acc = running_corrects / total # mean epoch accuracy
-    pkl_export(ret, val_output_path) 
+    pkl_export(ret, val_output_path)
     return epoch_loss, epoch_acc
 
 
